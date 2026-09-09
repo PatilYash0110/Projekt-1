@@ -34,46 +34,48 @@ export function Login() {
   }
 
   return (
-    <div className="mx-auto flex max-w-sm flex-col gap-8 py-8">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight text-foreground">Anmelden</h1>
-        <p className="mt-2 text-sm text-foreground-muted">
-          Melde dich mit deiner <span className="font-medium text-foreground">@thm.de</span>-Adresse an.
-        </p>
-      </div>
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-        <label className="flex flex-col gap-1.5 text-sm">
-          <span className="font-medium text-foreground">E-Mail</span>
-          <input
-            type="email"
-            required
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
-            placeholder="max.mustermann@thm.de"
-            className="h-11 border border-border bg-background px-3 text-sm text-foreground placeholder:text-foreground-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          />
-        </label>
-        <label className="flex flex-col gap-1.5 text-sm">
-          <span className="font-medium text-foreground">Passwort</span>
-          <input
-            type="password"
-            required
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-            placeholder="••••••••"
-            aria-describedby={error ? 'login-error' : undefined}
-            className="h-11 border border-border bg-background px-3 text-sm text-foreground placeholder:text-foreground-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          />
-        </label>
-        {error && (
-          <p id="login-error" role="alert" className="text-sm text-destructive">
-            {error}
+    <div className="flex min-h-[calc(100dvh-8rem)] items-center justify-center">
+      <div className="flex w-full max-w-sm flex-col gap-6">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground">Anmelden</h1>
+          <p className="mt-2 text-sm text-foreground-muted">
+            Melde dich mit deiner <span className="font-medium text-foreground">@thm.de</span>-Adresse an.
           </p>
-        )}
-        <Button type="submit" size="lg" className="mt-2" disabled={submitting}>
-          {submitting ? 'Anmelden…' : 'Anmelden'}
-        </Button>
-      </form>
+        </div>
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <label className="flex flex-col gap-1.5 text-sm">
+            <span className="font-medium text-foreground">E-Mail</span>
+            <input
+              type="email"
+              required
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              placeholder="max.mustermann@thm.de"
+              className="h-11 border border-border bg-background px-3 text-sm text-foreground placeholder:text-foreground-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            />
+          </label>
+          <label className="flex flex-col gap-1.5 text-sm">
+            <span className="font-medium text-foreground">Passwort</span>
+            <input
+              type="password"
+              required
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              placeholder="••••••••"
+              aria-describedby={error ? 'login-error' : undefined}
+              className="h-11 border border-border bg-background px-3 text-sm text-foreground placeholder:text-foreground-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            />
+          </label>
+          {error && (
+            <p id="login-error" role="alert" className="text-sm text-destructive">
+              {error}
+            </p>
+          )}
+          <Button type="submit" size="lg" className="mt-2" disabled={submitting}>
+            {submitting ? 'Anmelden…' : 'Anmelden'}
+          </Button>
+        </form>
+      </div>
     </div>
   )
 }
