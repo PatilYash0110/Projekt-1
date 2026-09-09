@@ -1,6 +1,8 @@
 import { IsEmail, IsString, Matches, MaxLength, MinLength } from 'class-validator';
 
 const THM_EMAIL_PATTERN = /^[^\s@]+@([a-z0-9-]+\.)*thm\.de$/i;
+// At least one lowercase letter, one uppercase letter, and one digit.
+const STRONG_PASSWORD_PATTERN = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/;
 
 export class RegisterDto {
   @IsString()
@@ -15,7 +17,10 @@ export class RegisterDto {
   email: string;
 
   @IsString()
-  @MinLength(8)
+  @MinLength(8, { message: 'Das Passwort muss mindestens 8 Zeichen lang sein.' })
   @MaxLength(72)
+  @Matches(STRONG_PASSWORD_PATTERN, {
+    message: 'Das Passwort muss Groß-, Kleinbuchstaben und mindestens eine Zahl enthalten.',
+  })
   password: string;
 }

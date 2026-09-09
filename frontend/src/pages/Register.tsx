@@ -3,14 +3,20 @@ import { type FormEvent, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ApiError, registerUser } from '../api/auth'
 import { Button } from '../components/Button'
+import { PasswordStrengthMeter } from '../components/PasswordStrengthMeter'
 
 const THM_EMAIL_PATTERN = /^[^\s@]+@([a-z0-9-]+\.)*thm\.de$/i
+// At least one lowercase letter, one uppercase letter, and one digit — mirrors backend/src/auth/dto/register.dto.ts
+const STRONG_PASSWORD_PATTERN = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/
+const PASSWORD_REQUIREMENTS_TEXT =
+  'Mindestens 8 Zeichen, mit Groß- und Kleinbuchstaben sowie einer Zahl.'
 
 export function Register() {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
+  const [passwordError, setPasswordError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
 
@@ -22,8 +28,14 @@ export function Register() {
       return
     }
     setError(null)
-    setSubmitting(true)
 
+    if (password.length < 8 || !STRONG_PASSWORD_PATTERN.test(password)) {
+      setPasswordError(PASSWORD_REQUIREMENTS_TEXT)
+      return
+    }
+    setPasswordError(null)
+
+    setSubmitting(true)
     try {
       await registerUser({ name, email, password })
       setSubmitted(true)
@@ -97,9 +109,19 @@ export function Register() {
             minLength={8}
             value={password}
             onChange={(event) => setPassword(event.target.value)}
-            placeholder="Mindestens 8 Zeichen"
+            placeholder="Sicheres Passwort"
+            aria-describedby={passwordError ? 'password-error password-requirements' : 'password-requirements'}
             className="h-11 border border-border bg-background px-3 text-sm text-foreground placeholder:text-foreground-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           />
+          {passwordError && (
+            <span id="password-error" role="alert" className="text-xs text-destructive">
+              {passwordError}
+            </span>
+          )}
+          <div id="password-requirements" className="flex flex-col gap-2">
+            <span className="text-xs text-foreground-muted">{PASSWORD_REQUIREMENTS_TEXT}</span>
+            {password && <PasswordStrengthMeter password={password} />}
+          </div>
         </label>
         <Button type="submit" size="lg" className="mt-2" disabled={submitting}>
           {submitting ? 'Registrieren…' : 'Registrieren'}
