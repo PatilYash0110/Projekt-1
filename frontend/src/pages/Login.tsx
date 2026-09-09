@@ -1,31 +1,36 @@
 import { type FormEvent, useState } from 'react'
 import { Navigate, useLocation, useNavigate } from 'react-router-dom'
+import { ApiError } from '../api/auth'
 import { Button } from '../components/Button'
 import { useAuth } from '../context/AuthContext'
-import { MOCK_ADMIN, MOCK_STUDENT } from '../mocks/users'
 
 export function Login() {
-  const { currentUser, loginAs } = useAuth()
+  const { currentUser, loading, login } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [error, setError] = useState<string | null>(null)
+  const [submitting, setSubmitting] = useState(false)
 
   const from = (location.state as { from?: { pathname: string } } | null)?.from?.pathname ?? '/'
 
-  if (currentUser) {
+  if (!loading && currentUser) {
     return <Navigate to={from} replace />
   }
 
-  function handleSubmit(event: FormEvent) {
+  async function handleSubmit(event: FormEvent) {
     event.preventDefault()
-    loginAs(MOCK_STUDENT.id)
-    navigate(from, { replace: true })
-  }
-
-  function handleDemoLogin(userId: string) {
-    loginAs(userId)
-    navigate(from, { replace: true })
+    setError(null)
+    setSubmitting(true)
+    try {
+      await login(email, password)
+      navigate(from, { replace: true })
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Anmeldung fehlgeschlagen.')
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   return (
@@ -36,7 +41,6 @@ export function Login() {
           Melde dich mit deiner <span className="font-medium text-foreground">@thm.de</span>-Adresse an.
         </p>
       </div>
-
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <label className="flex flex-col gap-1.5 text-sm">
           <span className="font-medium text-foreground">E-Mail</span>
@@ -57,27 +61,19 @@ export function Login() {
             value={password}
             onChange={(event) => setPassword(event.target.value)}
             placeholder="••••••••"
+            aria-describedby={error ? 'login-error' : undefined}
             className="h-11 border border-border bg-background px-3 text-sm text-foreground placeholder:text-foreground-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           />
         </label>
-        <Button type="submit" size="lg" className="mt-2">
-          Anmelden
+        {error && (
+          <p id="login-error" role="alert" className="text-sm text-destructive">
+            {error}
+          </p>
+        )}
+        <Button type="submit" size="lg" className="mt-2" disabled={submitting}>
+          {submitting ? 'Anmelden…' : 'Anmelden'}
         </Button>
       </form>
-
-      <div className="border-t border-border pt-6">
-        <p className="mb-3 text-xs uppercase tracking-wide text-foreground-muted">
-          Demo-Zugänge (Phase 1 — Mock)
-        </p>
-        <div className="flex flex-col gap-2">
-          <Button variant="secondary" onClick={() => handleDemoLogin(MOCK_STUDENT.id)}>
-            Als Studentin anmelden — {MOCK_STUDENT.name}
-          </Button>
-          <Button variant="secondary" onClick={() => handleDemoLogin(MOCK_ADMIN.id)}>
-            Als Admin anmelden — {MOCK_ADMIN.name}
-          </Button>
-        </div>
-      </div>
     </div>
   )
 }

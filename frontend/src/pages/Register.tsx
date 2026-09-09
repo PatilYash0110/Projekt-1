@@ -1,6 +1,7 @@
 import { EnvelopeSimple } from '@phosphor-icons/react'
 import { type FormEvent, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { ApiError, registerUser } from '../api/auth'
 import { Button } from '../components/Button'
 
 const THM_EMAIL_PATTERN = /^[^\s@]+@([a-z0-9-]+\.)*thm\.de$/i
@@ -10,16 +11,27 @@ export function Register() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
+  const [submitting, setSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
 
-  function handleSubmit(event: FormEvent) {
+  async function handleSubmit(event: FormEvent) {
     event.preventDefault()
+
     if (!THM_EMAIL_PATTERN.test(email)) {
-      setError('Bitte verwende eine gültige @thm.de-Adresse.')
+      setError('Bitte verwende eine gültige @thm.de-Adresse (auch Subdomains wie @mnd.thm.de).')
       return
     }
     setError(null)
-    setSubmitted(true)
+    setSubmitting(true)
+
+    try {
+      await registerUser({ name, email, password })
+      setSubmitted(true)
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Registrierung fehlgeschlagen.')
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   if (submitted) {
@@ -32,9 +44,6 @@ export function Register() {
         <p className="text-sm text-foreground-muted">
           Wir haben eine Bestätigungs-E-Mail an <span className="font-medium text-foreground">{email}</span> gesendet.
           Bitte bestätige deine Adresse, bevor du dich zum ersten Mal anmeldest.
-        </p>
-        <p className="text-xs text-foreground-muted">
-          (Phase 1 — Mock: kein echter E-Mail-Versand, kommt in Phase 2.)
         </p>
         <Link to="/login" className="text-sm font-medium text-accent underline">
           Zur Anmeldung
@@ -51,7 +60,6 @@ export function Register() {
           Nur mit einer verifizierten <span className="font-medium text-foreground">@thm.de</span>-Adresse möglich.
         </p>
       </div>
-
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <label className="flex flex-col gap-1.5 text-sm">
           <span className="font-medium text-foreground">Name</span>
@@ -93,11 +101,10 @@ export function Register() {
             className="h-11 border border-border bg-background px-3 text-sm text-foreground placeholder:text-foreground-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           />
         </label>
-        <Button type="submit" size="lg" className="mt-2">
-          Registrieren
+        <Button type="submit" size="lg" className="mt-2" disabled={submitting}>
+          {submitting ? 'Registrieren…' : 'Registrieren'}
         </Button>
       </form>
-
       <p className="text-center text-sm text-foreground-muted">
         Bereits registriert?{' '}
         <Link to="/login" className="font-medium text-accent underline">
