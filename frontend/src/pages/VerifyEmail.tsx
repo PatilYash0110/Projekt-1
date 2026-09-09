@@ -1,5 +1,5 @@
 import { CheckCircle, XCircle } from '@phosphor-icons/react'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { ApiError, verifyEmail } from '../api/auth'
 
@@ -11,12 +11,22 @@ export function VerifyEmail() {
   const [status, setStatus] = useState<Status>('verifying')
   const [message, setMessage] = useState<string | null>(null)
 
+  // The backend clears the token after a successful verify, so calling this
+  // twice for the same token would make the second call fail. StrictMode
+  // deliberately double-invokes effects in development, so without this
+  // guard the (harmless) first call succeeds server-side while the page
+  // still ends up showing the second call's failure.
+  const requestedFor = useRef<string | null>(null)
+
   useEffect(() => {
     if (!token) {
       setStatus('error')
       setMessage('Kein Bestätigungscode gefunden.')
       return
     }
+
+    if (requestedFor.current === token) return
+    requestedFor.current = token
 
     verifyEmail(token)
       .then(() => setStatus('success'))
